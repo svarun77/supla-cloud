@@ -1,50 +1,49 @@
 
- # SUPLA-CLOUD
- 
- [![Latest release](https://img.shields.io/github/release/SUPLA/supla-cloud.svg)](https://github.com/SUPLA/supla-cloud/releases/latest)
- [![Build Status](https://travis-ci.org/SUPLA/supla-cloud.svg?branch=master)](https://travis-ci.org/SUPLA/supla-cloud)
+# This is fork of SUPLA-CLOUD
 
-Your home connected. www.supla.org
+Supla-Cloud require Apache 2.x, PHP 7.x and MySQL.
 
-<img src="https://www.supla.org/assets/img/app-preview-en.png" height="500">
+Installation on Debian 9
+========================
 
-## Installation
+    curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+    sudo apt-get install -y nodejs
 
-In order to run SUPLA-CLOUD, you need to have PHP 7.x and MySQL database.
+    git clone https://github.com/IoTAqua/supla-cloud.git
+    cd supla-cloud
 
-Download the [release archive](https://github.com/SUPLA/supla-cloud/releases/latest) and extract it to a desired directory on your server.
+    cat supla-db.sql | mysql -p -u root
+    mysql -p -u root
+    * CREATE USER 'supla'@'localhost' IDENTIFIED BY '<mysql-supla-password>';
+    * GRANT ALL PRIVILEGES ON supla.* To 'supla'@'localhost';
+    * FLUSH PRIVILEGES;
 
-Adjust the configuration by editing the `app/config/parameters.yml` file.
+    vi app/config/parameters.yml
+    * set "database_password:" <mysql-supla-password>
+    * set "mailer_from:" <admin@domain>
+    * set "supla_server:" <supla server address>
+    * set "ewz_recaptcha_public_key:" Site key from www.google.com/recaptcha
+    * set "ewz_recaptcha_private_key:" Secret key from www.google.com/recaptcha
 
-## Development
+    curl -sS https://getcomposer.org/installer | php
+    php composer.phar install --no-dev --optimize-autoloader
+    php composer.phar run-script webpack
+    php bin/console doctrine:schema:update --force
+    php bin/console cache:clear --env=prod
 
-Application is written with [Symfony](https://symfony.com/) and [Doctrine](http://www.doctrine-project.org/) on backend. 
-Frontend uses [jQuery](https://jquery.com/) and [Vue.js](https://vuejs.org/).
+    sudo cp -R ../supla-cloud /var/www/
+    sudo chown -R root:www-data /var/www/supla-cloud
+    sudo chown -R www-data:www-data /var/www/supla-cloud/var
+    sudo chmod 640 /var/www/supla-cloud/app/config/*
 
-You need to have [composer](https://getcomposer.org/) and [NodeJS](https://nodejs.org/) installed.
+Setup Apache
+============
 
-### Downloading dependencies
-```
-composer install
-```
+Config must have:
 
-### Downloading frontend dependencies and building the sources
-```
-composer run-script webpack
-```
-
-The above command also generates a config file `app/config/config_dev.yml` required to run the application.
-
-### Run webpack dev-server when writing frontend code
-
-Enable application support of webpack dev server in your `app/config/parameters.yml`:
-
-```
-use_webpack_dev_server: true
-```
-
-And then run:
-
-```
-cd src/Frontend && npm run dev
-```
+    DocumentRoot /var/www/supla-cloud/web
+    Directory /var/www/supla-cloud/web>
+      AllowOverride All
+      Order Allow,Deny
+      Allow from All
+    </Directory>
